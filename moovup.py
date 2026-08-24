@@ -82,9 +82,19 @@ def escolher_numero(msg, minimo, maximo):
 
 def cadastrar_usuario(usuarios, nome, email):
     try:
+        if nome.strip() == "":
+            raise ValueError("Nome não pode ser vazio.")
+        if not validar_email(email):
+            raise ValueError("Email inválido.")
         if buscar_usuario(usuarios, email):
             raise ValueError("Email já cadastrado.")
-        usuarios.append({"nome": nome, "email": email, "pontos": 0, "historico": []})
+ 
+        usuarios.append({
+            "nome": nome,
+            "email": email,
+            "pontos": 0,
+            "historico": []
+        })
     except ValueError as erro:
         print(f"Erro: {erro}")
         return usuarios
@@ -94,19 +104,43 @@ def cadastrar_usuario(usuarios, nome, email):
     finally:
         salvar_usuarios()
 
-    usuarios.append({
-        "nome": nome,
-        "email": email,
-        "pontos": 0,
-        "historico": []
-    })
-    salvar_usuarios()
-    print("Usuário cadastrado com sucesso!")
+def editar_usuario():
+    try:
+        usuario = buscar_usuario(usuarios, email_atual)
+        if not usuario:
+            raise ValueError("Usuário não encontrado.")
+
+        if novo_email != email_atual:
+            if not validar_email(novo_email):
+                raise ValueError("Novo email inválido.")
+            if buscar_usuario(usuarios, novo_email):
+                raise ValueError("Esse email já pertence a outro usuário.")
+
+        usuario["nome"] = novo_nome
+        usuario["email"] = novo_email
+
+    except ValueError as erro:
+        print(f"Erro: {erro}")
+        return usuarios
+    else:
+        print("Usuário atualizado com sucesso!")
+        return usuarios
+    finally:
+        salvar_usuarios()
+
+def mostrar_saldo():
+    email = input("Seu email: ").strip().lower()
+    usuario = buscar_usuario(email)
+    if not usuario:
+        print("Usuário não encontrado.")
+        return
+
+
 
 # Função que registra as postagens feitas pelos usuarios e converte em pontos que estão guardados em uma tupla
 
 def registrar_postagem():
-    email = input("Seu email: ")
+    email = input("Seu email: ").strip().lower()
     usuario = buscar_usuario(email)
     if not usuario:
         print("Usuário não encontrado.")
@@ -158,7 +192,7 @@ def converter_passagem():
 
 #funcao feita para consultar o saldo do usuario, o mesmo pede o usuario e email para realizar o cadastro, print mostrando o nome inserido pelo e usuario e sua quantidade de pontos. E exibe seu historico de resgate atraves da estrutura for 
 def consultar_saldo():
-    email = input("Seu email: ")
+    email = input("Seu email: ").strip().lower()
     usuario = buscar_usuario(email)
     if not usuario:
         print("Usuário não encontrado.")
@@ -171,11 +205,30 @@ def consultar_saldo():
 
 
 #funcao do menu feito para interacao do usuario, atraves do match case. case_ utilizado caso o usuario digite uma opcao invalida e case 0 para sair do progama. c
+def menu_crud():
+    print("\n===== Menu de usuario =====")
+    print("1 - Cadastrar usuario")
+    print("2 - mostrar o saldo atual do usuario")
+    print("3 - Editar o usuario")
+    print("4 - Deletar conta")
+    print("0 - Voltar ao menu principal")
+    op_crud = input("Insira sua opção: ")
+    match op_crud:
+        case "1":
+            cadastrar_usuario()
+        case "2":
+            mostrar_saldo()
+        case "3":
+            editar_usuario()
+        case "4":
+            deletar_usuario()
+        case "0":
+            return menu()
 
 def menu():
     while True:
         print("\n===== MOVE-UP =====")
-        print("1 - Cadastrar usuário")
+        print("1 - CRUD de usuarios (nome temporário)")
         print("2 - Registrar postagem")
         print("3 - Converter passagem")
         print("4 - Consultar saldo")
@@ -183,7 +236,7 @@ def menu():
         op = input("Insira sua opção: ")
         match op:
             case "1":
-                cadastrar_usuario()
+                menu_crud()
             case "2":
                 registrar_postagem()
             case "3":
