@@ -1,0 +1,14 @@
+[
+    {
+        "nome": "Juan Marques",
+        "email": "juanmarques@exemplo.com",
+        "pontos": 0,
+        "historico": []
+    },
+    {
+        "nome": "juan marques 2",
+        "email": "juanmarques2@exemplo.com",
+        "pontos": 0,
+        "historico": []
+    }
+]
