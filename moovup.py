@@ -1,29 +1,15 @@
 import json
 
-# =========================================
-# Moov-up - Sistema de Conversão de Pontos
-# =========================================
-
 ARQUIVO = "usuarios.json"
 
-usuarios = []
+# Cadastro inicial solicitado; será gravado em usuarios.json na primeira execução.
+usuarios = [
+    {"nome": "Ana Silva", "email": "ana.silva@exemplo.com", "pontos": 0, "historico": []}
+]
 
-taxas = {
-    "energia": 0.05,
-    "metro": 10,
-    "trem": 10,
-    "onibus": 8
-}
+taxas = {"energia": 0.05, "metro": 10, "trem": 10, "onibus": 8}
+postagens = {"foto": 5, "video": 15, "story": 3, "reels": 20}
 
-postagens = {
-    "foto": 5,
-    "video": 15,
-    "story": 3,
-    "reels": 20
-}
-
-
-#abre o arquivo json que guarda a informação dos usuarios e def carregar_usuarios() --> busca no json se o usuario esta cadastrado no sistema
 
 def salvar_usuarios():
     with open(ARQUIVO, "w", encoding="utf-8") as arquivo:
@@ -35,36 +21,27 @@ def carregar_usuarios():
     try:
         with open(ARQUIVO, "r", encoding="utf-8") as arquivo:
             usuarios = json.load(arquivo)
-    except FileNotFoundError:
-        usuarios = []
+    except (FileNotFoundError, json.JSONDecodeError):
+        salvar_usuarios()
 
-# função que busca e o usuario e checa se ele esta cadastrado no json 
 
 def buscar_usuario(email):
     for usuario in usuarios:
-        if usuario["email"] == email:
+        if usuario["email"].lower() == email.lower():
             return usuario
     return None
 
-# Função para validar os caracteres do email, e retornar a o mesmo para inserir os caracteres corretos
 
 def validar_email(email):
     if "@" not in email:
         return False
+    nome, *dominios = email.split("@")
+    return len(dominios) == 1 and bool(nome) and "." in dominios[0]
 
-    partes = email.split("@")
-    if len(partes) != 2:
-        return False
 
-    nome, dominio = partes
-    if nome == "" or dominio == "":
-        return False
-
-    if "." not in dominio:
-        return False
-
-    return True
-
+def validar_nome(nome):
+    """Aceita somente letras (inclusive acentuadas) e espaços."""
+    return bool(nome) and all(parte.isalpha() for parte in nome.split())
 
 
 def escolher_numero(msg, minimo, maximo):
@@ -74,7 +51,7 @@ def escolher_numero(msg, minimo, maximo):
             if minimo <= valor <= maximo:
                 return valor
             print("Número inválido.")
-        except:
+        except ValueError:
             print("Digite apenas números.")
 
 # Funcao que guarda o cadastro feito pelo usuario, e depois aplica na lista usuarios[] e depois coloca no json 
@@ -100,8 +77,66 @@ def cadastrar_usuario(usuarios, nome, email):
         return usuarios
     else:
         print("Usuário cadastrado com sucesso!")
-        return usuarios
-    finally:
+
+
+# READ
+def listar_usuarios():
+    print("\n--- Usuários cadastrados ---")
+    if not usuarios:
+        print("Não há usuários cadastrados.")
+        return
+    for indice, usuario in enumerate(usuarios, 1):
+        print(f"{indice} - {usuario['nome']} | {usuario['email']} | {usuario['pontos']} pontos")
+
+
+def consultar_usuario():
+    email = input("E-mail do usuário: ").strip()
+    usuario = buscar_usuario(email)
+    if not usuario:
+        print("Usuário não encontrado.")
+        return
+    print(f"Nome: {usuario['nome']}")
+    print(f"E-mail: {usuario['email']}")
+    print(f"Pontos: {usuario['pontos']}")
+
+
+# UPDATE
+def editar_usuario():
+    print("\n--- Editar usuário ---")
+    usuario = buscar_usuario(input("E-mail atual: ").strip())
+    if not usuario:
+        print("Usuário não encontrado.")
+        return
+    novo_nome = input(f"Novo nome [{usuario['nome']}]: ").strip()
+    novo_email = input(f"Novo e-mail [{usuario['email']}]: ").strip().lower()
+    if novo_nome and not validar_nome(novo_nome):
+        print("Nome inválido. Use somente letras e espaços.")
+        return
+    if novo_email:
+        if not validar_email(novo_email):
+            print("E-mail inválido. Nenhuma alteração foi salva.")
+            return
+        outro_usuario = buscar_usuario(novo_email)
+        if outro_usuario and outro_usuario is not usuario:
+            print("E-mail já cadastrado. Nenhuma alteração foi salva.")
+            return
+    if novo_nome:
+        usuario["nome"] = novo_nome
+    if novo_email:
+        usuario["email"] = novo_email
+    salvar_usuarios()
+    print("Usuário atualizado com sucesso!")
+
+
+# DELETE
+def excluir_usuario():
+    print("\n--- Excluir usuário ---")
+    usuario = buscar_usuario(input("E-mail do usuário: ").strip())
+    if not usuario:
+        print("Usuário não encontrado.")
+        return
+    if input(f"Excluir {usuario['nome']}? (S/N): ").strip().upper() == "S":
+        usuarios.remove(usuario)
         salvar_usuarios()
 
 def editar_usuario():
@@ -145,27 +180,21 @@ def registrar_postagem():
     if not usuario:
         print("Usuário não encontrado.")
         return
+    tipos = list(postagens)
     print("\nTipos de postagem:")
-    tipos = list(postagens.keys())
     for i, tipo in enumerate(tipos, 1):
         print(f"[{i}] {tipo} (+{postagens[tipo]} pts)")
-    opcao = escolher_numero("Escolha: ", 1, len(tipos))
-    tipo = tipos[opcao - 1]
+    tipo = tipos[escolher_numero("Escolha: ", 1, len(tipos)) - 1]
     qtd = escolher_numero("Quantidade (1-5): ", 1, 5)
     pontos = postagens[tipo] * qtd
     usuario["pontos"] += pontos
-    usuario["historico"].append(
-        f"{qtd}x {tipo} (+{pontos} pts)"
-    )
+    usuario["historico"].append(f"{qtd}x {tipo} (+{pontos} pts)")
     salvar_usuarios()
     print(f"Você ganhou {pontos} pontos!")
 
 
-#funcao de alteracao de energia onde email e usuario sao inseridos e caso n encontrados na lista usuarios o usuario nao pode utilizar o progama, caso haja cadastro. Caso haja usuario o sistema continua normalmente, sistema verifica pontos dentra da estrutuira usuario onde seus pontos do site ficam armazenados,se pontos for = 0 retorna que voce ainda nao possui pontos. depois a funcao escolher_numero abre o usuario a requisicao para ele escolher os pontos 
-
 def converter_passagem():
-    email = input("Seu email: ")
-    usuario = buscar_usuario(email)
+    usuario = buscar_usuario(input("Seu e-mail: ").strip())
     if not usuario:
         print("Usuário não encontrado.")
         return
@@ -177,29 +206,22 @@ def converter_passagem():
     print("\nTipo de transporte:")
     for i, modal in enumerate(modais, 1):
         print(f"[{i}] {modal} ({taxas[modal]} pts = R$ 1,00)")
-    opcao = escolher_numero("Escolha: ", 1, len(modais))
-    modal_escolhido = modais[opcao - 1]
-    usar = escolher_numero(
-        f"Quantos pontos deseja converter? (1-{pontos}): ",
-        1,
-        pontos
-    )
-    credito = usar / taxas[modal_escolhido]
+    modal = modais[escolher_numero("Escolha: ", 1, len(modais)) - 1]
+    usar = escolher_numero(f"Quantos pontos deseja converter? (1-{pontos}): ", 1, pontos)
     usuario["pontos"] -= usar
     salvar_usuarios()
-    print(f"Crédito gerado: R$ {credito:.2f}")
+    print(f"Crédito gerado: R$ {usar / taxas[modal]:.2f}")
 
 
-#funcao feita para consultar o saldo do usuario, o mesmo pede o usuario e email para realizar o cadastro, print mostrando o nome inserido pelo e usuario e sua quantidade de pontos. E exibe seu historico de resgate atraves da estrutura for 
 def consultar_saldo():
     email = input("Seu email: ").strip().lower()
     usuario = buscar_usuario(email)
     if not usuario:
         print("Usuário não encontrado.")
         return
-    print(f"\nNome: {usuario['nome']}")
-    print(f"Pontos: {usuario['pontos']}")
-    print("\nHistórico:")
+    print(f"\nNome: {usuario['nome']}\nPontos: {usuario['pontos']}\n\nHistórico:")
+    if not usuario["historico"]:
+        print("Nenhuma movimentação.")
     for item in usuario["historico"]:
         print("-", item)
 
@@ -246,17 +268,8 @@ def menu():
             case "0":
                 print("Saindo...")
                 break
-            case _:
-                print("Opção inválida.")
+            case _: print("Opção inválida.")
 
-
-#serve para sempre carregar o menu e o cadastro dos usuarios 
-
-carregar_usuarios()
-menu()
-
-#Metas de melhorias do progama 
-# - Melhorar sistema de cadastro ao usuario ou remover o mesmo 
-# - focar mais na conversao de passgens 
-# - integrar com o sistema de front-end 
-# - limitar quantidade de postagens 
+if __name__ == "__main__":
+    carregar_usuarios()
+    menu()
