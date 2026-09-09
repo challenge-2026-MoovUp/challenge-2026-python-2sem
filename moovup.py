@@ -100,7 +100,7 @@ def consultar_usuario():
     print(f"Pontos: {usuario['pontos']}")
 
 
-# UPDATE
+# UPDATE - 
 def editar_usuario():
     print("\n--- Editar usuário ---")
     usuario = buscar_usuario(input("E-mail atual: ").strip())
@@ -270,6 +270,6 @@ def menu():
                 break
             case _: print("Opção inválida.")
 
-if __name__ == "__main__":
-    carregar_usuarios()
-    menu()
+
+carregar_usuarios()
+menu()
