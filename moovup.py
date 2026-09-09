@@ -38,9 +38,8 @@ def validar_email(email):
     nome, *dominios = email.split("@")
     return len(dominios) == 1 and bool(nome) and "." in dominios[0]
 
-
+#Aceita somente letras (inclusive acentuadas) e espaços.
 def validar_nome(nome):
-    """Aceita somente letras (inclusive acentuadas) e espaços."""
     return bool(nome) and all(parte.isalpha() for parte in nome.split())
 
 
@@ -55,14 +54,16 @@ def escolher_numero(msg, minimo, maximo):
             print("Digite apenas números.")
 
 
-# CREATE
+# CREATE - 
 def cadastrar_usuario():
     print("\n--- Cadastrar usuário ---")
-    nome = input("Nome: ").strip()
-    email = input("E-mail: ").strip().lower()
+    nome = input("Nome: ").strip().lower()
     if not validar_nome(nome):
         print("Nome inválido. Use somente letras e espaços.")
-    elif not validar_email(email):
+        return 
+
+    email = input("E-mail: ").strip().lower()
+    if not validar_email(email):
         print("E-mail inválido.")
     elif buscar_usuario(email):
         print("E-mail já cadastrado.")
@@ -209,7 +210,7 @@ def consultar_saldo():
 def menu():
     while True:
         print("\n===== MOVE-UP =====")
-        print("1 - Cadastrar usuário")
+        print("1 - Configurações de usuário")
         print("2 - Registrar postagem")
         print("3 - Converter passagem")
         print("4 - Consultar saldo")
@@ -224,6 +225,6 @@ def menu():
                 break
             case _: print("Opção inválida.")
 
-if __name__ == "__main__":
-    carregar_usuarios()
-    menu()
+
+carregar_usuarios()
+menu()
