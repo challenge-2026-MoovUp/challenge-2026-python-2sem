@@ -10,5 +10,11 @@
         "email": "juanmarques2@exemplo.com",
         "pontos": 0,
         "historico": []
+    },
+    {
+        "nome": "Reinaldo Marques",
+        "email": "reinas@email.com",
+        "pontos": 0,
+        "historico": []
     }
 ]
