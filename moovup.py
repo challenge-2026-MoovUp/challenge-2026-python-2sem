@@ -136,22 +136,30 @@ def registrar_postagem():
 
 
 def converter_pontos():
-    usuario = buscar_usuario(input("Seu e-mail: ").strip())
-    if not usuario:
-        print("Usuario nao encontrado.")
-        return
-    if usuario["pontos"] == 0:
-        print("Voce nao possui pontos para converter.")
-        return
+    try:
+        usuario = buscar_usuario(input("Seu e-mail: ").strip())
+        if not usuario:
+            print("Usuario nao encontrado.")
+            return
+        if usuario["pontos"] == 0:
+            print("Voce nao possui pontos para converter.")
+            return
 
-    print(f"Cada ponto vale R$ {VALOR_POR_PONTO:.4f}.")
-    usar = ler_numero("Quantos pontos deseja converter? ", 1, usuario["pontos"])
-    valor = usar * VALOR_POR_PONTO
+        print(f"Cada ponto vale R$ {VALOR_POR_PONTO:.4f}.")
+        usar = int(input("Quantos pontos deseja converter? "))
+        if usar < 1 or usar > usuario["pontos"]:
+            print("Quantidade de pontos invalida.")
+            return
 
-    usuario["pontos"] -= usar
-    usuario["historico"].append(f"Conversao: -{usar} pontos = R$ {valor:.2f}")
-    salvar_usuarios()
-    print(f"Valor estimado: R$ {valor:.2f}")
+        valor = usar * VALOR_POR_PONTO
+        usuario["pontos"] -= usar
+        usuario["historico"].append(f"Conversao: -{usar} pontos = R$ {valor:.2f}")
+        salvar_usuarios()
+        print(f"Valor estimado: R$ {valor:.2f}")
+    except ValueError:
+        print("Digite apenas numeros para a quantidade de pontos.")
+    except OSError:
+        print("Nao foi possivel salvar a conversao.")
 
 
 def consultar_saldo():
